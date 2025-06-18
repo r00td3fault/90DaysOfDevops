@@ -16,6 +16,9 @@ vagrant ssh     #Conectarse via SSH (necesita cliente como Git Bash)
 vagrant halt    #Apagar la VM
 vagrant destroy #Eliminar la VM completamente
 vagrant reload --provision  #Reiniciar y re-ejecutar provisionamiento
+vagrant up --provision | tee vagrant.log #Ver output del provisionamiento
+
+#Revisa logs en /var/log/cloud-init-output.log
 ```
 
 ### 📦 Vagrant Boxes: Arquitectura y Fuentes Oficiales
