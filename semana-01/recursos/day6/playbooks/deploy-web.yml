@@ -1,0 +1,82 @@
+---
+- name: Deploy StartBootstrap Personal Website
+  hosts: webservers
+  become: true
+  vars:
+    web_url: "https://github.com/startbootstrap/startbootstrap-personal/archive/gh-pages.zip"
+    web_dir: "/var/www/html"
+    
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        
+    - name: Install required packages
+      apt:
+        name:
+          - nginx
+          - unzip
+          - wget
+          - curl
+        state: present
+        
+    - name: Start and enable nginx
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+        
+    - name: Remove default nginx site
+      file:
+        path: "{{ web_dir }}/index.nginx-debian.html"
+        state: absent
+        
+    - name: Create temporary directory
+      file:
+        path: /tmp/website
+        state: directory
+        
+    - name: Download website
+      get_url:
+        url: "{{ web_url }}"
+        dest: /tmp/website/site.zip
+        
+    - name: Extract website
+      unarchive:
+        src: /tmp/website/site.zip
+        dest: /tmp/website/
+        remote_src: yes
+        
+    - name: Copy website files to web directory
+      copy:
+        src: /tmp/website/startbootstrap-personal-gh-pages/
+        dest: "{{ web_dir }}/"
+        remote_src: yes
+        owner: www-data
+        group: www-data
+        mode: '0755'
+        
+    - name: Set correct permissions
+      file:
+        path: "{{ web_dir }}"
+        owner: www-data
+        group: www-data
+        mode: '0755'
+        recurse: yes
+        
+    - name: Clean up temporary files
+      file:
+        path: /tmp/website
+        state: absent
+        
+    - name: Restart nginx
+      systemd:
+        name: nginx
+        state: restarted
+        
+    - name: Show access information
+      debug:
+        msg: 
+          - "Website deployed successfully!"
+          - "Access the site at: http://192.168.1.10"
+          - "Or from your host machine: http://192.168.1.10"

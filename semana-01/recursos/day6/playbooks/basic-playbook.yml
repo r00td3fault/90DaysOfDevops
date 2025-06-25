@@ -1,0 +1,17 @@
+---
+- name: Configuración básica de servidor
+  hosts: webservers
+  become: true
+  
+  tasks:
+    - name: Instalar paquetes esenciales
+      apt:
+        name: ["git", "tree", "htop", "python3-passlib"]
+        state: present
+        update_cache: yes
+
+    - name: Habilitar firewall
+      ufw:
+        rule: allow
+        port: "22,80,443"
+        proto: tcp
