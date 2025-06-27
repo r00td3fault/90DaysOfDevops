@@ -1,0 +1,69 @@
+---
+# tasks file for nginx
+- name: Instalar Nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Instalar Unzip
+  ansible.builtin.apt:
+    name: unzip
+    state: present
+    update_cache: yes
+
+- name: Asegurar que Nginx esté iniciado y habilitado
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Crear directorio web
+  ansible.builtin.file:
+    path: "{{ web_root }}"
+    state: directory
+    mode: '0755'
+
+- name: Descargar template
+  ansible.builtin.get_url:
+    url: "{{ repo_url }}"
+    dest: /tmp/freelancer.zip
+    mode: '0644'
+
+- name: Descomprimir template
+  ansible.builtin.unarchive:
+    src: /tmp/freelancer.zip
+    dest: "/tmp/"
+    remote_src: yes
+
+- name: Mover el contenido al subdirectorio
+  ansible.builtin.shell: |
+    cd /tmp/startbootstrap-freelancer-gh-pages
+    cp -r * {{ web_root }}/
+    chown -R www-data:www-data {{ web_root }}
+
+- name: Limpiar archivos temporales
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/tmp/freelancer.zip"
+    - "/tmp/startbootstrap-freelancer-gh-pages"
+
+- name: Configurar Nginx
+  ansible.builtin.template:
+    src: nginx.conf
+    dest: /etc/nginx/sites-available/freelancer
+  notify: Restart Nginx
+
+- name: Habilitar sitio
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/freelancer
+    dest: /etc/nginx/sites-enabled/freelancer
+    state: link
+      
+- name: Eliminar default site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Restart Nginx

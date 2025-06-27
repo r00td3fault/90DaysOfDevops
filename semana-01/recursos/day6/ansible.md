@@ -36,4 +36,24 @@ ansible webservers -m apt -a "name=nginx state=present" -b --become-user=root
 
 # Reiniciar servicios
 ansible all -m service -a "name=nginx state=restarted"
+
+# Ejecutar playbook en un servidor remoto (sin Vagrant)
+ansible-playbook -i 192.168.1.100, -u ubuntu --private-key ~/.ssh/id_rsa playbook.yml
+
+# sobre escribir variables
+ansible-playbook -i hosts.ini playbook.yml -e "web_root=/var/www/custom"
+
+# Ver hosts disponibles en inventario
+ansible-inventory -i hosts.ini --list
+
+# Probar conexión SSH
+ansible all -i hosts.ini -m ping
+
+# Ejecutar comando ad-hoc
+ansible webservers -i hosts.ini -a "free -h"
 ```
+
+### Roles
+En resumen divide el playbook en varios archivos, estan limitados a una funcionalidad especifica o a un determinado resultado.
+permite empaquetar funcionalidades para permitir reutilizarlas con una estructura clara definida y parametrizable pudiendo 
+reproducir facilmente dicho comportamiento de manera dinamica y sin necesidad de reescribir código.

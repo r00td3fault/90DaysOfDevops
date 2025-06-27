@@ -1,0 +1,9 @@
+---
+- name: Despliegue Fullstack Freelancer con roles
+  hosts: node1
+  become: true
+
+  roles:
+    - nginx
+    - devops
+    - firewall
