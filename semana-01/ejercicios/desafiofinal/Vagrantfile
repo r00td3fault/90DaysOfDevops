@@ -1,0 +1,31 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64"
+  config.vm.boot_timeout = 1200
+
+  config.vm.define "server" do |ansible| #nombre de la maquina virtual
+        ansible.vm.box_check_update = false
+        ansible.vm.network "private_network", ip: "192.168.86.13"
+        ansible.vm.network "forwarded_port", guest: 80, host: 8083
+        ansible.vm.network "forwarded_port", guest: 8000, host: 8084
+        ansible.vm.network "forwarded_port", guest: 3000, host: 3003
+        ansible.vm.network "forwarded_port", guest: 3001, host: 3004
+        ansible.vm.hostname = "ansible"
+
+        ansible.vm.provider "virtualbox" do |vb|
+            vb.memory = "4096"
+            vb.cpus = 2
+        end
+
+        ansible.vm.synced_folder "roxs-voting-app", "/app/roxs-voting-app"
+        ansible.vm.provision "shell", path: "scripts/desplegar.sh" , privileged: false
+
+        #correr ansible en la maquina guest
+        ansible.vm.provision "ansible_local" do |ansiblep|
+            ansiblep.playbook = "ansible/playbook.yml"
+            ansiblep.verbose = true
+            ansiblep.limit          = "all"
+        end
+
+  end
+
+end
